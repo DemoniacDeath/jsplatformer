@@ -27,11 +27,25 @@ define(function(require){
     if (this.still && c.still)
       return;//two still objects cannot collide (because we presume that they both do not move)
 
-    var alreadyCollided = (
-      ~this.colliders.indexOf(c.gameObject)
-      ||
-      ~c.colliders.indexOf(this.gameObject)
-      );
+    var alreadyCollided = false;
+
+    var i, len;
+    i = 0;
+    len = this.colliders.length;
+    while (i < len) {
+      if (this.colliders[i] === c.gameObject)
+        alreadyCollided = true;
+      i++;
+    }
+    if (!alreadyCollided)
+    {
+      i = 0;
+      len = c.colliders.length;
+      while (i < len) {
+        if (c.colliders[i] === this.gameObject)
+          alreadyCollided = true;
+      }
+    }
 
     var center1 = this.gameObject.getGlobalPosition();
     var center2 = c.gameObject.getGlobalPosition();

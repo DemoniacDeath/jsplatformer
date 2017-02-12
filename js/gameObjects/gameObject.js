@@ -71,9 +71,17 @@ define(function(require){
   GameObject.prototype.detectCollisions = function(dt){
     var allColliders = [];
     this._collectColliders(allColliders);
-    for (var i = 0; i < allColliders.length; i++)
-      for (var j = i + 1; j < allColliders.length; j++)
+
+    var len = allColliders.length;
+    var i = 0;
+    while (i < len) {
+      var j = i + 1;
+      while (j < len) {
         allColliders[i].physics.detectCollision(allColliders[j].physics, dt);
+        ++j;
+      }
+      ++i;
+    }
   };
 
   GameObject.prototype._collectColliders = function(allColliders){

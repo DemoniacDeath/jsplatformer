@@ -1,3 +1,5 @@
+//TODO: fix render glitches (sometimes in some corners it's twitchy when thrying to move 'into' the wall)
+//TODO: fix ALL the collision glitches
 define(function(require){
   var Color = require('./color');
   var Size = require('./size');
@@ -18,12 +20,11 @@ define(function(require){
   var UIText = require('./gameObjects/ui/ui.text');
   return function(gameCanvas, uiCanvas, resources){
     const gridSquareSize = 40;
-    //TODO: fix physics. with low value of gridSquareSize the collisions are not detected
     const gravityForce = 33 * gridSquareSize;
     const itemChance = 0.16;
     const worldWidth = 40;
     const worldHeight = 30;
-    const damageVelocityThreshold = 36000 / gridSquareSize;
+    const damageVelocityThreshold = 22.5 * gridSquareSize;
     const damageVelocityMultiplier = 0.4 / gridSquareSize;
     const speed = 7.8 * gridSquareSize;
     const jumpSpeed = 15 * gridSquareSize;
@@ -47,7 +48,11 @@ define(function(require){
     this.ui = new UIElement(new Rect(0, 0, this.renderer.size.width, this.renderer.size.height));
 
     this.createWorld = function(){
-      var player = new Player(new Rect(0, this.world.frame.height/4, gridSquareSize, 2*gridSquareSize));
+      var player = new Player(new Rect(
+        0,
+        this.world.frame.height/4,
+        gridSquareSize,
+        2*gridSquareSize));
       player.speed = speed;
       player.jumpSpeed = jumpSpeed;
       player.idleAnimation = Animation.withSingleRenderObject(RenderObject.fromImage(this.resources.idle));
@@ -74,13 +79,8 @@ define(function(require){
       room.floor.renderObject = RenderObject.fromColor(Color.black());
       this.world.addChild(room);
 
-      var d = 520;
-      var debug_ruler = new GameObject(new Rect(0, d/2, 1, d));
-      debug_ruler.renderObject = RenderObject.fromColor(Color.blue());
-      this.world.addChild(debug_ruler);
-
-      // var count = ~~(worldWidth * worldHeight * itemChance);
-      var count = 0;
+      var count = ~~(worldWidth * worldHeight * itemChance);
+      // var count = 0;
       var powerCount = ~~(count/2);
       player.maxPower = powerCount;
       var x = ~~(worldWidth - 2);
@@ -183,6 +183,7 @@ define(function(require){
     this.gameTimerTick = function(){
       var ticks = Date.now();
       var dt = (ticks - this.lastTick) / 1000;
+      dt = (dt > 0.02) ? 0.02 : dt;//prevent some freaky glitches with running out of the walls
       this.lastTick = ticks;
 
       this.world.animate(Animation.getTicks());
