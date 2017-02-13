@@ -2,8 +2,8 @@ define(function(require){
   var GameObject = require('./gameObject');
   var PhysicsState = require('../physicsState');
   var Player = require('./player');
-  var Solid = function(frame, damageVelocityThreshold, damageVelocityMultiplier){
-    GameObject.call(this, frame);
+  var Solid = function(parent, frame, damageVelocityThreshold, damageVelocityMultiplier){
+    GameObject.call(this, parent, frame);
 
     this.physics = new PhysicsState(this);
     this.damageVelocityThreshold = damageVelocityThreshold;
@@ -16,7 +16,7 @@ define(function(require){
 
   Solid.prototype.handleEnterCollision = function(collision){
     if (collision.collider instanceof Player && collision.collider.physics.velocity.y > this.damageVelocityThreshold)
-      collision.collider.dealDamage(Math.round(collision.collider.physics.velocity.y * this.damageVelocityMultiplier));
+      collision.collider.dealDamage(Math.round(Math.pow(collision.collider.physics.velocity.y - this.damageVelocityThreshold / 2, 2) * this.damageVelocityMultiplier * this.damageVelocityMultiplier));
   };
 
   Solid.prototype.handleCollision = function(collision){

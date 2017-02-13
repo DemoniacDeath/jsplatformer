@@ -1,7 +1,6 @@
 define(function(require){
-  var Rect = require('./rect');
   var Vector = require('./vector');
-  var Texture = require('./texture');
+  var Rect = require('./rect');
   var Renderer = require('./renderer');
   var RenderObject = function(texture){
     this.texture = texture;
@@ -11,7 +10,10 @@ define(function(require){
   RenderObject.prototype.render = function(renderer, position, size, cameraPosition, cameraSize, noScaleCaching){
     if (!Rect.overlapArea(position.x, position.y, size.width, size.height, cameraPosition.x, cameraPosition.y, cameraSize.width, cameraSize.height))
       return;
-    var renderPosition = position.add(new Vector(-size.width / 2, -size.height / 2)).sub(cameraPosition).sub(new Vector(-cameraSize.width / 2, -cameraSize.height / 2));
+    var renderPosition = new Vector(
+      Math.round(position.x - size.width / 2 - cameraPosition.x + cameraSize.width / 2),
+      Math.round(position.y - size.height / 2 - cameraPosition.y + cameraSize.height / 2)
+    );
     var x = Math.round(renderer.size.width * (renderPosition.x / cameraSize.width));
     var y = Math.round(renderer.size.height * (renderPosition.y / cameraSize.height));
     var width = Math.round(renderer.size.width * (size.width / cameraSize.width));
@@ -24,16 +26,10 @@ define(function(require){
     if (width == this.texture.width && height == this.texture.height)
       return this.texture;
     var scaleKey = width+','+height;
-    if (!this.cachedScaledTextures[scaleKey])
-      this.cachedScaledTextures[scaleKey] = this.createScaledTexture(width, height);
+    if (!this.cachedScaledTextures[scaleKey]){
+      this.cachedScaledTextures[scaleKey] = Renderer.cloneTexture(this.texture, width, height);
+    }
     return this.cachedScaledTextures[scaleKey];
-  };
-
-  RenderObject.prototype.createScaledTexture = function(width, height){
-    var texture = Renderer.createTexture(width, height);
-    var renderer = new Renderer(texture.image);
-    renderer.drawImage(this.texture, 0, 0, width, height);
-    return texture;
   };
 
   RenderObject.fromColor = function(color){
@@ -41,7 +37,7 @@ define(function(require){
   };
 
   RenderObject.fromImage = function(image){
-    return new RenderObject(new Texture(image));
+    return new RenderObject(Renderer.cloneTexture(image));
   };
   return RenderObject;
 });

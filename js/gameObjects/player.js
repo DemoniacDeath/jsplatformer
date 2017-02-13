@@ -3,8 +3,8 @@ define(function(require){
   var PhysicsState = require('../physicsState');
   var Vector = require('../vector');
   var Consumable = require('./consumable');
-  var Player = function(frame){
-    GameObject.call(this, frame);
+  var Player = function(parent, frame){
+    GameObject.call(this, parent, frame);
 
     this.speed = 0;
     this.jumpSpeed = 0;
@@ -41,14 +41,14 @@ define(function(require){
       if (crouched && !_crouched)
       {
         _crouched = true;
-        this.frame.y += this.originalSize.height / 4;
-        this.frame.height = this.originalSize.height / 2;
+        this.frame.y += Math.round(this.originalSize.height / 4);
+        this.frame.height = Math.round(this.originalSize.height / 2);
       }
       else if (!crouched && _crouched)
       {
         _crouched = false;
-        this.frame.y -= this.originalSize.height / 4;
-        this.frame.height = this.originalSize.height;
+        this.frame.y -= Math.round(this.originalSize.height / 4);
+        this.frame.height = Math.round(this.originalSize.height);
       }
     };
   };
@@ -77,7 +77,7 @@ define(function(require){
       var sitDown = false;
       var moveLeft = false;
       var moveRight = false;
-      var moveVector = new Vector();
+      var moveVector = Vector.zero();
       var speed = this.speed * dt;
       if (keys['ArrowLeft'] || keys['KeyA'])
       {
@@ -139,8 +139,8 @@ define(function(require){
       if (this.jumped && !this.isCrouched())
           this.animation = this.jumpAnimation;
 
-      this.frame.x += moveVector.x;
-      this.frame.y += moveVector.y;
+      this.frame.x += Math.round(moveVector.x);
+      this.frame.y += Math.round(moveVector.y);
     }
     GameObject.prototype.handleKeyboardState.call(this, keys, dt);
   };
@@ -160,12 +160,11 @@ define(function(require){
 
   Player.prototype.handleExitCollision = function(collider){
     if (!this.physics.colliders.length)
-    {
       this.jumped = true;
-    }
   };
 
   Player.prototype.handleCollision = function(collision){
+    if (collision.collider.isRemoved()) return;//prevent consumable jump
     if (Math.abs(collision.collisionVector.x) > Math.abs(collision.collisionVector.y))
       if (collision.collisionVector.y > 0 && this.jumped && this.physics.gravity)
         this.jumped = false;

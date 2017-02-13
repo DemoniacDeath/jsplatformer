@@ -1,8 +1,5 @@
-//TODO: fix render glitches (sometimes in some corners it's twitchy when thrying to move 'into' the wall)
 //TODO: fix ALL the collision glitches
 define(function(require){
-  var Color = require('./color');
-  var Size = require('./size');
   var Vector = require('./vector');
   var Rect = require('./rect');
   var Renderer = require('./renderer');
@@ -31,7 +28,7 @@ define(function(require){
     const consumablePowerSpeedBoost = 0.06 * gridSquareSize;
     const consumablePowerJumpSpeedBoost = 0.06 * gridSquareSize;
 
-    PhysicsState.prototype.gravityForce = gravityForce;
+    PhysicsState.gravityForce = gravityForce;
 
     this.resources = resources;
     this.gameCanvas = gameCanvas;
@@ -42,13 +39,12 @@ define(function(require){
     this.gameTimerInterval = null;
     this.keyboardState = {};
     this.lastTick = 0;
-    this.world = null;
-    this.camera = new Camera(new Rect(0, 0, this.renderer.size.width, this.renderer.size.height));
-    this.world = new GameObject(new Rect(0, 0, worldWidth * gridSquareSize, worldHeight * gridSquareSize));
-    this.ui = new UIElement(new Rect(0, 0, this.renderer.size.width, this.renderer.size.height));
+    this.world = new GameObject(null, new Rect(0, 0, worldWidth * gridSquareSize, worldHeight * gridSquareSize));
+    this.camera = new Camera(this.world, new Rect(0, 0, this.renderer.size.width, this.renderer.size.height));
+    this.ui = new UIElement(null, new Rect(0, 0, this.renderer.size.width, this.renderer.size.height));
 
     this.createWorld = function(){
-      var player = new Player(new Rect(
+      var player = new Player(this.world, new Rect(
         0,
         this.world.frame.height/4,
         gridSquareSize,
@@ -68,23 +64,19 @@ define(function(require){
       player.crouchMoveAnimation = player.crouchMoveAnimationRight;
       player.animation = player.idleAnimation;
       player.addChild(this.camera);
-      // this.world.addChild(this.camera);
 
-      this.world.addChild(player);
-
-      var room = new Room(new Rect(0, 0, this.world.frame.width, this.world.frame.height), gridSquareSize, damageVelocityThreshold, damageVelocityMultiplier);
-      room.ceiling.renderObject = RenderObject.fromColor(Color.black());
-      room.wallLeft.renderObject = RenderObject.fromColor(Color.black());
-      room.wallRight.renderObject = RenderObject.fromColor(Color.black());
-      room.floor.renderObject = RenderObject.fromColor(Color.black());
-      this.world.addChild(room);
+      var room = new Room(this.world, new Rect(0, 0, this.world.frame.width, this.world.frame.height), gridSquareSize, damageVelocityThreshold, damageVelocityMultiplier);
+      room.ceiling.renderObject = RenderObject.fromColor('#000');
+      room.wallLeft.renderObject = RenderObject.fromColor('#000');
+      room.wallRight.renderObject = RenderObject.fromColor('#000');
+      room.floor.renderObject = RenderObject.fromColor('#000');
 
       var count = ~~(worldWidth * worldHeight * itemChance);
       // var count = 0;
       var powerCount = ~~(count/2);
       player.maxPower = powerCount;
-      var x = ~~(worldWidth - 2);
-      var y = ~~(worldHeight - 2);
+      var x = worldWidth - 2;
+      var y = worldHeight - 2;
       var rndX, rndY;
       var takenX = [];
       var takenY = [];
@@ -117,55 +109,82 @@ define(function(require){
         var gameObject;
         if (powerCount > 0)
         {
-          gameObject = new Consumable(rect, consumablePowerSpeedBoost, consumablePowerJumpSpeedBoost);
-          gameObject.renderObject = RenderObject.fromColor(Color.green());
+          gameObject = new Consumable(this.world, rect, consumablePowerSpeedBoost, consumablePowerJumpSpeedBoost);
+          gameObject.renderObject = RenderObject.fromColor('#0f0');
           powerCount--;
         }
         else
         {
-          gameObject = new Solid(rect, damageVelocityThreshold, damageVelocityMultiplier);
+          gameObject = new Solid(this.world, rect, damageVelocityThreshold, damageVelocityMultiplier);
           gameObject.renderObject = RenderObject.fromImage(this.resources.brick);
         }
-        this.world.addChild(gameObject);
       }
 
-      this.deathText = new UIText(new Rect(0, 0, 0, 48), "You died! Game over!", Color.red(), "48px monospace");
+      // var l = 20;
+      // for (var i = 0; i < l; i++){
+      //   var rect = new Rect(
+      //     -this.world.frame.width / 2 + (l+0.5-i) * gridSquareSize,
+      //     this.world.frame.height / 2 - (i + 1.5) * gridSquareSize,
+      //     gridSquareSize,
+      //     gridSquareSize
+      //     );
+      //   var gameObject = new Solid(this.world, rect, damageVelocityThreshold, damageVelocityMultiplier);
+      //   gameObject.renderObject = RenderObject.fromImage(this.resources.brick);
+      // }
+
+      // var l = worldHeight - 2;
+      // l-=2;
+      // for (var i = 0; i < l; i++)
+      // {
+      //   var rect = new Rect(
+      //     -1 * gridSquareSize,
+      //     (worldHeight / 2 - i - 1.5) * gridSquareSize,
+      //     gridSquareSize,
+      //     gridSquareSize
+      //     );
+      //   var gameObject = new Solid(this.world, rect, damageVelocityThreshold, damageVelocityMultiplier);
+      //   gameObject.renderObject = RenderObject.fromImage(this.resources.brick);
+      //   rect = new Rect(
+      //     1 * gridSquareSize,
+      //     (-worldHeight / 2 + i + 1.5) * gridSquareSize,
+      //     gridSquareSize,
+      //     gridSquareSize
+      //     );
+      //   gameObject = new Solid(this.world, rect, damageVelocityThreshold, damageVelocityMultiplier);
+      //   gameObject.renderObject = RenderObject.fromImage(this.resources.brick);
+      // }
+
+      this.deathText = new UIText(this.ui, new Rect(0, 0, 0, 60), "You died! Game over!", '#f00', "48px monospace");
       this.deathText.visible = false;
-      this.ui.addChild(this.deathText);
 
-      this.winText = new UIText(new Rect(0, 0, 0, 48), "Congratulations! You won!", Color.green(), "48px monospace");
+      this.winText = new UIText(this.ui, new Rect(0, 0, 0, 60), "Congratulations! You won!", '#0f0', "48px monospace");
       this.winText.visible = false;
-      this.ui.addChild(this.winText);
 
-      this.healthBarHolder = new UIElement(new Rect(
+      this.healthBarHolder = new UIElement(this.ui, new Rect(
         -this.renderer.size.width / 2 + 64,
         -this.renderer.size.height / 2 + 10,
         120, 12));
-      this.healthBarHolder.renderObject = RenderObject.fromColor(Color.black());
-      this.ui.addChild(this.healthBarHolder);
+      this.healthBarHolder.renderObject = RenderObject.fromColor('#000');
 
-      this.healthBar = new UIBar(new Rect(
+      this.healthBar = new UIBar(this.ui, new Rect(
         -this.renderer.size.width / 2 + 64,
         -this.renderer.size.height / 2 + 10,
         116, 8));
-      this.healthBar.renderObject = RenderObject.fromColor(Color.red());
+      this.healthBar.renderObject = RenderObject.fromColor('#f00');
       this.healthBar.setValue(100);
-      this.ui.addChild(this.healthBar);
 
-      this.powerBarHolder = new UIElement(new Rect(
+      this.powerBarHolder = new UIElement(this.ui, new Rect(
         this.renderer.size.width / 2 - 64,
         -this.renderer.size.height / 2 + 10,
         120, 12));
-      this.powerBarHolder.renderObject = RenderObject.fromColor(Color.black());
-      this.ui.addChild(this.powerBarHolder);
+      this.powerBarHolder.renderObject = RenderObject.fromColor('#000');
 
-      this.powerBar = new UIBar(new Rect(
+      this.powerBar = new UIBar(this.ui, new Rect(
         this.renderer.size.width / 2 - 64,
         -this.renderer.size.height / 2 + 10,
         116, 9));
-      this.powerBar.renderObject = RenderObject.fromColor(Color.green());
+      this.powerBar.renderObject = RenderObject.fromColor('#0f0');
       this.powerBar.setValue(0);
-      this.ui.addChild(this.powerBar);
 
       player.deathText = this.deathText;
       player.winText = this.winText;
@@ -194,10 +213,10 @@ define(function(require){
       this.uiRenderer.clear();
       this.ui.render(this.uiRenderer, this.ui.frame.getCenter(), Vector.zero(), this.camera.originalSize);
 
-
-      this.world.handleKeyboardState(this.keyboardState, dt);
-      this.world.processPhysics(dt);
-      this.world.detectCollisions(dt);
+      this.world.handleKeyboardState(this.keyboardState, dt)
+        .processPhysics(dt)
+        .detectCollisions(dt)
+      ;
 
       requestAnimFrame(this.gameTimerTick.bind(this));
     };
@@ -212,8 +231,8 @@ define(function(require){
     };
 
     this.resize = function(){
-      this.renderer.size = new Size(this.gameCanvas.width, this.gameCanvas.height);
-      this.uiRenderer.size = new Size(this.uiCanvas.width, this.uiCanvas.height);
+      this.renderer.size = {width: this.gameCanvas.width, height: this.gameCanvas.height};
+      this.uiRenderer.size = {width: this.uiCanvas.width, height: this.uiCanvas.height};
       this.camera.setSize(this.renderer.size);
       this.ui.frame.setSize(this.renderer.size);
       var healthBarNewCenter = new Vector(
@@ -239,14 +258,10 @@ define(function(require){
     };
 
     this.debugRuler = function(x,y,l,text){
-      var ruler = new GameObject(new Rect(x+l/2,y,l,1));
-      ruler.renderObject = RenderObject.fromColor(Color.green());
-      this.world.addChild(ruler);
+      var ruler = new GameObject(this.world, new Rect(x+l/2,y,l,1));
+      ruler.renderObject = RenderObject.fromColor('#0f0');
       if (text)
-      {
-        var label = new UIText(new Rect(l, 0, 0, 6), text, Color.green(), "6px monospace");
-        ruler.addChild(label);
-      }
+        var label = new UIText(ruler, new Rect(l, 0, 0, 6), text, '#0f0', "6px monospace");
     };
   };
 });

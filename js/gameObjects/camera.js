@@ -1,10 +1,9 @@
 define(function(require){
   var GameObject = require('./gameObject');
-  var Size = require('../size');
-  var Camera = function(frame){
-    GameObject.call(this, frame);
+  var Camera = function(parent, frame){
+    GameObject.call(this, parent, frame);
 
-    this.originalSize = new Size(frame.width, frame.height);
+    this.originalSize = {width: frame.width, height: frame.height};
   };
 
   Camera.prototype = Object.create(GameObject.prototype);
@@ -19,11 +18,13 @@ define(function(require){
   Camera.prototype.handleKeyboardState = function(keys) {
     if (keys['KeyZ'])
     {
-      this.frame.setSize(this.originalSize.mul(2));
+      this.frame.width = this.originalSize.width * 2;
+      this.frame.height = this.originalSize.height * 2;
     }
     else
     {
-      this.frame.setSize(this.originalSize);
+      this.frame.width = this.originalSize.width;
+      this.frame.height = this.originalSize.height;
     }
   };
   return Camera;

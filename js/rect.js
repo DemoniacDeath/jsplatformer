@@ -1,5 +1,4 @@
 define(function(require){
-  var Size = require('./size');
   var Vector = require('./vector');
   var Rect = function(x, y, w, h) {
     this.x = x || 0;
@@ -17,7 +16,7 @@ define(function(require){
   };
 
   Rect.prototype.getSize = function(){
-    return new Size(this.width, this.height);
+    return {width: this.width, height: this.height};
   };
   Rect.prototype.setSize = function(size){
     this.width = size.width;

@@ -4,6 +4,7 @@ define(function(require){
   var Collision = require('./collision');
   var PhysicsState = function(gameObject){
     this.gameObject = gameObject;
+    this.gravityForce = PhysicsState.gravityForce;
     this.gravity = false;
     this.still = true;
     this.colliders = [];
@@ -21,6 +22,20 @@ define(function(require){
       // console.log(this.gameObject.frame.y);
       // console.log(dt);
     }
+  };
+
+  PhysicsState.prototype.setGravityEnabled = function(gravity){
+    this.gravity = gravity;
+    return this;
+  };
+
+  PhysicsState.prototype.isGravityEnabled = function(){
+    return this.gravity;
+  };
+
+  PhysicsState.prototype.toggleGravityEnabled = function(){
+    this.gravity = !this.gravity;
+    return this;
   };
 
   PhysicsState.prototype.detectCollision = function(c, dt) {
@@ -86,14 +101,14 @@ define(function(require){
     if (this.gameObject.handleCollision)
       this.gameObject.handleCollision(new Collision(collider.gameObject, overlapArea), dt);
     if (collider.gameObject.handleCollision)
-      collider.gameObject.handleCollision(new Collision(this.gameObject, overlapArea.mul(-1)), dt);
+      collider.gameObject.handleCollision(new Collision(this.gameObject, overlapArea.copy().multiply(-1)), dt);
   };
 
   PhysicsState.prototype.enterCollision = function(collider, overlapArea, dt){
     if (this.gameObject.handleEnterCollision)
       this.gameObject.handleEnterCollision(new Collision(collider.gameObject, overlapArea), dt);
     if (collider.gameObject.handleEnterCollision)
-      collider.gameObject.handleEnterCollision(new Collision(this.gameObject, overlapArea.mul(-1)), dt);
+      collider.gameObject.handleEnterCollision(new Collision(this.gameObject, overlapArea.copy().multiply(-1)), dt);
   };
 
   PhysicsState.prototype.exitCollision = function(collider, dt){

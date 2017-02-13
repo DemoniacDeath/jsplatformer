@@ -1,25 +1,36 @@
 define(function(require){
-  var Vector = function(x, y) {
-    this.x = x || 0;
-    this.y = y || 0;
+  var Vector = function(x, y){
+    this.x = x;
+    this.y = y;
   };
 
-  Vector.prototype.mul = function(scalar) {
-    return new Vector(this.x * scalar, this.y * scalar);
+  Vector.prototype.add = function(vector){
+    this.x += vector.x;
+    this.y += vector.y;
+    return this;
   };
-  Vector.prototype.div = function(scalar) {
-    return new Vector(this.x / scalar, this.y / scalar);
+
+  Vector.prototype.multiply = function(scalar){
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
   };
-  Vector.prototype.add = function(v) {
-    return new Vector(this.x + v.x, this.y + v.y);
-  };
-  Vector.prototype.sub = function(v) {
-    return new Vector(this.x - v.x, this.y - v.y);
-  };
-  Vector.prototype.copy = function() {
+
+  Vector.prototype.copy = function(){
     return new Vector(this.x, this.y);
   };
 
-  Vector.zero = function(){return new Vector(0, 0);}
+  Vector.add = function(vector, vector2){
+    return vector.copy().add(vector2);
+  };
+
+  Vector.multiply = function(vector, scalar){
+    return vector.copy().multiply(scalar);
+  };
+
+  Vector.zero = function(){
+    return new Vector(0, 0);
+  };
+
   return Vector;
 });

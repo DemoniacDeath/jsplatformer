@@ -1,7 +1,7 @@
 define(function(require){
   var GameObject = require('../gameObject');
-  var UIElement = function(frame){
-    GameObject.call(this, frame);
+  var UIElement = function(parent, frame){
+    GameObject.call(this, parent, frame);
   };
 
   UIElement.prototype = Object.create(GameObject.prototype);
