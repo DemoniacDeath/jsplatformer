@@ -3,8 +3,8 @@ define(function(require){
   var PhysicsState = require('../physicsState');
   var Vector = require('../vector');
   var Consumable = require('./consumable');
-  var Player = function(parent, frame){
-    GameObject.call(this, parent, frame);
+  var Player = function(frame){
+    GameObject.call(this, frame);
 
     this.speed = 0;
     this.jumpSpeed = 0;
@@ -41,14 +41,14 @@ define(function(require){
       if (crouched && !_crouched)
       {
         _crouched = true;
-        this.frame.y += Math.round(this.originalSize.height / 4);
-        this.frame.height = Math.round(this.originalSize.height / 2);
+        this.frame.y += this.originalSize.height / 4;
+        this.frame.height = this.originalSize.height / 2;
       }
       else if (!crouched && _crouched)
       {
         _crouched = false;
-        this.frame.y -= Math.round(this.originalSize.height / 4);
-        this.frame.height = Math.round(this.originalSize.height);
+        this.frame.y -= this.originalSize.height / 4;
+        this.frame.height = this.originalSize.height;
       }
     };
   };
@@ -77,29 +77,30 @@ define(function(require){
       var sitDown = false;
       var moveLeft = false;
       var moveRight = false;
-      var moveVector = Vector.zero();
+      var moveVector = new Vector();
       var speed = this.speed * dt;
+      var jumpSpeed = this.jumpSpeed;
       if (keys['ArrowLeft'] || keys['KeyA'])
       {
-        moveVector.x -= speed;
+        moveVector = moveVector.add(new Vector(-speed, 0));
         moveLeft = true;
       }
       if (keys['ArrowRight'] || keys['KeyD'])
       {
-        moveVector.x += speed;
+        moveVector = moveVector.add(new Vector(speed, 0));
         moveRight = true;
       }
       if (keys['ArrowUp'] || keys['KeyW'] || keys['Space'])
       {
         if (!this.physics.gravity)
         {
-          moveVector.y -= speed;
+          moveVector = moveVector.add(new Vector(0, -speed));
         }
         else
         {
           if (!this.jumped)
           {
-            this.physics.velocity.y -= this.jumpSpeed;
+            this.physics.velocity = this.physics.velocity.add(new Vector(0, -jumpSpeed));
             this.jumped = true;
           }
         }
@@ -107,7 +108,7 @@ define(function(require){
       if (keys['ArrowDown'] || keys['KeyS'] || keys['ControlLeft'])
       {
         if (!this.physics.gravity)
-          moveVector.y += speed;
+          moveVector = moveVector.add(new Vector(0, speed));
         else
           sitDown = true;
       }
@@ -139,8 +140,7 @@ define(function(require){
       if (this.jumped && !this.isCrouched())
           this.animation = this.jumpAnimation;
 
-      this.frame.x += Math.round(moveVector.x);
-      this.frame.y += Math.round(moveVector.y);
+      this.frame.setCenter(this.frame.getCenter().add(moveVector));
     }
     GameObject.prototype.handleKeyboardState.call(this, keys, dt);
   };
@@ -160,11 +160,12 @@ define(function(require){
 
   Player.prototype.handleExitCollision = function(collider){
     if (!this.physics.colliders.length)
+    {
       this.jumped = true;
+    }
   };
 
   Player.prototype.handleCollision = function(collision){
-    if (collision.collider.isRemoved()) return;//prevent consumable jump
     if (Math.abs(collision.collisionVector.x) > Math.abs(collision.collisionVector.y))
       if (collision.collisionVector.y > 0 && this.jumped && this.physics.gravity)
         this.jumped = false;

@@ -1,7 +1,7 @@
 define(function(require){
   var UIElement = require('./ui.element');
-  var UIBar = function(parent, frame){
-    UIElement.call(this, parent, frame);
+  var UIBar = function(frame){
+    UIElement.call(this, frame);
 
     var _value = 100;
     var _originalFrame = frame.copy();

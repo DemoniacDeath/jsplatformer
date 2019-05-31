@@ -1,8 +1,8 @@
 define(function(require){
   var GameObject = require('./gameObject');
   var PhysicsState = require('../physicsState');
-  var Consumable = function(parent, frame, speedBoost, jumpSpeedBoost){
-    GameObject.call(this, parent, frame);
+  var Consumable = function(frame, speedBoost, jumpSpeedBoost){
+    GameObject.call(this, frame);
 
     this.physics = new PhysicsState(this);
 

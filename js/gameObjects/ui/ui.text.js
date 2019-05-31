@@ -2,8 +2,8 @@ define(function(require){
   var UIElement = require('./ui.element');
   var Renderer = require('../../renderer');
   var RenderObject = require('../../renderObject');
-  var UIText = function(parent, frame, text, color, font){
-    UIElement.call(this, parent, frame);
+  var UIText = function(frame, text, color, font){
+    UIElement.call(this, frame);
 
     this.text = text;
     this.color = color;
@@ -17,12 +17,12 @@ define(function(require){
 
   UIText.prototype.createRenderObject = function(){
     var texture = Renderer.createTexture(1, this.frame.height);
-    var ctx = texture.getContext("2d");
+    var ctx = texture.image.getContext("2d");
     ctx.font = this.font;
-    texture.width = ctx.measureText(this.text).width;
-    this.frame.width = texture.width;
+    texture.image.width = ctx.measureText(this.text).width;
+    this.frame.width = texture.image.width;
     ctx.font = this.font;
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = this.color.toString();
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(this.text, 0, 0);

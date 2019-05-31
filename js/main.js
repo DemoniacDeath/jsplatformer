@@ -16,11 +16,11 @@ var requestAnimFrame = (function(){
     window.oRequestAnimationFrame      ||
     window.msRequestAnimationFrame     ||
     function(callback){
-      window.setTimeout(callback, 1000 / 60);
+      window.setTimeout(callback, 1000 / 33);
     };
 })();
 
-requirejs(['./game'], function(Game){
+requirejs(['./game', 'https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.7.3/nipplejs.min.js'], function(Game,Nipple){
   var resources = {
     move: {url: 'img/move.png', width: 40, height: 480},
     move_l: {url: 'img/move_l.png', width: 40, height: 480},
@@ -64,11 +64,35 @@ requirejs(['./game'], function(Game){
     setCanvasSize(uiCanvas);
     game = new Game(gameCanvas, uiCanvas, resources);
     game.run();
+    var joystickManager = Nipple.create({
+      zone: document.getElementById('ui'),
+      threshold: 0.1,
+      dataOnly: true,
+      multitouch: true
+    });
+    joystickManager.on('dir plain end', (e, j) => {
+      game.keyUp('KeyW');
+      game.keyUp('KeyS');
+      game.keyUp('KeyA');
+      game.keyUp('KeyD');
+      switch(e.type) {
+        case 'dir':
+        case 'plain':
+          switch(j.direction.angle) {
+            case 'up': game.keyDown('KeyW'); break;
+            case 'down': game.keyDown('KeyS'); break;
+          }
+          switch(j.direction.x) {
+            case 'left': game.keyDown('KeyA'); break;
+            case 'right': game.keyDown('KeyD'); break;
+          }
+      }
+    });
     document.addEventListener("keydown", function(e){
-      game.keyDown(e);
+      game.keyDown(e.code);
     }, false);
     document.addEventListener("keyup", function(e){
-      game.keyUp(e);
+      game.keyUp(e.code);
     }, false);
     window.addEventListener("resize", function(){
       setCanvasSize(gameCanvas, uiCanvas);

@@ -44,7 +44,7 @@ define(function(require){
     for (var i = 0; i < framesNumber; i++)
     {
       var texture = Renderer.createTexture(width, height);
-      var ctx = texture.getContext("2d");
+      var ctx = texture.image.getContext("2d");
       ctx.drawImage(image, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height);
       frames.push(new RenderObject(texture));
 

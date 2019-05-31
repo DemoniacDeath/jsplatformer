@@ -1,10 +1,11 @@
 define(function(require){
+  var Size = require('./size');
   var Vector = require('./vector');
   var Rect = function(x, y, w, h) {
     this.x = x || 0;
     this.y = y || 0;
-    this.width = Math.abs(w) || 0;
-    this.height = Math.abs(h) || 0;
+    this.width = w || 0;
+    this.height = h || 0;
   };
 
   Rect.prototype.getCenter = function(){
@@ -16,7 +17,7 @@ define(function(require){
   };
 
   Rect.prototype.getSize = function(){
-    return {width: this.width, height: this.height};
+    return new Size(this.width, this.height);
   };
   Rect.prototype.setSize = function(size){
     this.width = size.width;
